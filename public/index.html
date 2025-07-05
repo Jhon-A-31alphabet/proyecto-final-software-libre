@@ -37,60 +37,51 @@
   </table>
 
   <script>
-    function agregarEstudiante(nombreValor, claseValor) {
-      const nombre = nombreValor || document.getElementById("nombre").value.trim();
-      const clase = claseValor || document.getElementById("clase").value.trim();
+    function agregarEstudiante() {
+  const nombre = document.getElementById("nombre").value.trim();
+  const clase = document.getElementById("clase").value.trim();
 
-      if (nombre === "" || clase === "") {
-        alert("Por favor, completa ambos campos.");
-        return;
-      }
+  if (nombre === "" || clase === "") {
+    alert("Por favor, completa ambos campos.");
+    return;
+  }
 
-      const cuerpo = document.getElementById("tabla-cuerpo");
-      const fila = document.createElement("tr");
-
-      // Celdas con contenido
-      const tdNombre = document.createElement("td");
-      tdNombre.textContent = nombre;
-
-      const tdClase = document.createElement("td");
-      tdClase.textContent = clase;
-
-      // Celda de acciones
-      const tdAcciones = document.createElement("td");
-
-      const btnEliminar = document.createElement("button");
-      btnEliminar.textContent = "Eliminar";
-      btnEliminar.onclick = function () {
-        fila.remove();
-      };
-
-      const btnActualizar = document.createElement("button");
-      btnActualizar.textContent = "Actualizar";
-      btnActualizar.onclick = function () {
-        const nuevoNombre = prompt("Nuevo nombre:", tdNombre.textContent);
-        const nuevaClase = prompt("Nueva clase:", tdClase.textContent);
-        if (nuevoNombre && nuevaClase) {
-          tdNombre.textContent = nuevoNombre;
-          tdClase.textContent = nuevaClase;
-        }
-      };
-
-      tdAcciones.appendChild(btnEliminar);
-      tdAcciones.appendChild(btnActualizar);
-
-      fila.appendChild(tdNombre);
-      fila.appendChild(tdClase);
-      fila.appendChild(tdAcciones);
-
-      cuerpo.appendChild(fila);
-
-      // Limpiar inputs si la llamada fue desde formulario
-      if (!nombreValor && !claseValor) {
-        document.getElementById("nombre").value = "";
-        document.getElementById("clase").value = "";
-      }
+  fetch("/estudiantes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nombre, clase })
+  })
+  .then(res => {
+    if (res.ok) {
+      cargarEstudiantes(); // recarga la tabla desde la BD
+      document.getElementById("nombre").value = "";
+      document.getElementById("clase").value = "";
     }
+  });
+}
+
+function eliminarEstudiante(id) {
+  fetch(`/estudiantes/${id}`, {
+    method: "DELETE"
+  }).then(res => {
+    if (res.ok) cargarEstudiantes();
+  });
+}
+
+function actualizarEstudiante(id, nombreActual, claseActual) {
+  const nuevoNombre = prompt("Nuevo nombre:", nombreActual);
+  const nuevaClase = prompt("Nueva clase:", claseActual);
+
+  if (!nuevoNombre || !nuevaClase) return;
+
+  fetch(`/estudiantes/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nombre: nuevoNombre, clase: nuevaClase })
+  }).then(res => {
+    if (res.ok) cargarEstudiantes();
+  });
+}
   </script>
 
 </body>
