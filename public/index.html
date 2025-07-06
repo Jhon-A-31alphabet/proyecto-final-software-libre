@@ -37,51 +37,76 @@
   </table>
 
   <script>
-    function agregarEstudiante() {
-  const nombre = document.getElementById("nombre").value.trim();
-  const clase = document.getElementById("clase").value.trim();
+    window.onload = cargarEstudiantes;
 
-  if (nombre === "" || clase === "") {
-    alert("Por favor, completa ambos campos.");
-    return;
-  }
+    // ✅  FUNCIÓN FALTANTE:
+    // Obtiene todos los estudiantes del servidor y los muestra en la tabla.
+    function cargarEstudiantes() {
+      fetch("/estudiantes")
+        .then(res => res.json())
+        .then(data => {
+          const tablaCuerpo = document.getElementById("tabla-cuerpo");
+          tablaCuerpo.innerHTML = ""; // Limpia la tabla antes de llenarla
 
-  fetch("/estudiantes", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nombre, clase })
-  })
-  .then(res => {
-    if (res.ok) {
-      cargarEstudiantes(); // recarga la tabla desde la BD
-      document.getElementById("nombre").value = "";
-      document.getElementById("clase").value = "";
+          data.forEach(estudiante => {
+            const fila = `
+              <tr>
+                <td>${estudiante.nombre}</td>
+                <td>${estudiante.clase}</td>
+                <td>
+                  <button onclick="actualizarEstudiante(${estudiante.id}, '${estudiante.nombre}', '${estudiante.clase}')">Editar</button>
+                  <button onclick="eliminarEstudiante(${estudiante.id})">Eliminar</button>
+                </td>
+              </tr>
+            `;
+            tablaCuerpo.innerHTML += fila;
+          });
+        });
     }
-  });
-}
+      function agregarEstudiante() {
+      const nombre = document.getElementById("nombre").value.trim();
+      const clase = document.getElementById("clase").value.trim();
 
-function eliminarEstudiante(id) {
-  fetch(`/estudiantes/${id}`, {
-    method: "DELETE"
-  }).then(res => {
-    if (res.ok) cargarEstudiantes();
-  });
-}
+      if (nombre === "" || clase === "") {
+        alert("Por favor, completa ambos campos.");
+        return;
+      }
 
-function actualizarEstudiante(id, nombreActual, claseActual) {
-  const nuevoNombre = prompt("Nuevo nombre:", nombreActual);
-  const nuevaClase = prompt("Nueva clase:", claseActual);
+      fetch("/estudiantes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre, clase })
+      })
+      .then(res => {
+        if (res.ok) {
+          cargarEstudiantes(); // Ahora esta función sí existe
+          document.getElementById("nombre").value = "";
+          document.getElementById("clase").value = "";
+        }
+      });
 
-  if (!nuevoNombre || !nuevaClase) return;
+         function eliminarEstudiante(id) {
+      fetch(`/estudiantes/${id}`, {
+        method: "DELETE"
+      }).then(res => {
+        if (res.ok) cargarEstudiantes(); // Ahora esta función sí existe
+      });
+    }
 
-  fetch(`/estudiantes/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nombre: nuevoNombre, clase: nuevaClase })
-  }).then(res => {
-    if (res.ok) cargarEstudiantes();
-  });
-}
+    function actualizarEstudiante(id, nombreActual, claseActual) {
+      const nuevoNombre = prompt("Nuevo nombre:", nombreActual);
+      const nuevaClase = prompt("Nueva clase:", claseActual);
+
+      if (!nuevoNombre || !nuevaClase) return;
+
+      fetch(`/estudiantes/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre: nuevoNombre, clase: nuevaClase })
+      }).then(res => {
+        if (res.ok) cargarEstudiantes(); // Ahora esta función sí existe
+      });
+    }
   </script>
 
 </body>
